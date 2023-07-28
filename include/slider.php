@@ -1,3 +1,10 @@
+<?php
+
+$query_slider = "SELECT * FROM posts_slider";
+
+$posts_slider = $db->query($query_slider);
+?>
+
 <section>
     <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
       <ol class="carousel-indicators">
@@ -7,39 +14,34 @@
       </ol>
 
       <div class="carousel-inner">
-        <div class="carousel-item active" style="height: 450px">
-          <img src="./img/1.jpg" class="img-fluid d-block w-100 h-100" alt="...">
+        <?php
+        if ($posts_slider->rowCount() > 0) {
+          foreach($posts_slider as $post_slider) {
+            $id_post = $post_slider['post_id'];
+            $query_posts = "SELECT * FROM posts WHERE id=$id_post";
+
+            $post = $db->query($query_posts)->fetch();
+
+        ?>
+
+        <div class="carousel-item <?php echo ( $post_slider['active']) ? "active" : "" ;  ?>" style="height: 450px">
+          <img src="../upload/posts/<?php echo $post['image'] ?>" class="img-fluid d-block w-100 h-100" alt="...">
           <div class="carousel-caption d-none d-md-block">
-            <h5>لورم ایپسوم 1</h5>
+            <h5><?php echo $post['title']; ?></h5>
             <p>
-              لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون
+              <?php echo substr($post['body'] , 0 , 150). "..."; ?>
             </p>
-            <a href="single.php" class="btn btn-danger"> مشاهده </a>
+            <a href="single.php?post=<?php echo $post['id']; ?>" class="btn btn-danger"> مشاهده </a>
           </div>
         </div>
 
-        <div class="carousel-item" style="height: 450px">
-          <img src="./img/2.jpg" class="img-fluid d-block w-100 h-100" alt="...">
-          <div class="carousel-caption d-none d-md-block">
-            <h5>لورم ایپسوم 2</h5>
-            <p>
-              لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون
-            </p>
-            <a href="single.php" class="btn btn-danger"> مشاهده </a>
-          </div>
-        </div>
+        <?php
 
-        <div class="carousel-item" style="height: 450px">
-          <img src="./img/3.jpg" class="img-fluid d-block w-100 h-100" alt="...">
-          <div class="carousel-caption d-none d-md-block">
-            <h5>لورم ایپسوم 3</h5>
-            <p>
-              لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون
-            </p>
-            <a href="single.php" class="btn btn-danger"> مشاهده </a>
-          </div>
+          }
+        }
 
-        </div>
+        ?>
+
 
       </div>
 
