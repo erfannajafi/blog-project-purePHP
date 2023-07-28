@@ -1,39 +1,81 @@
 <?php
 
-  include("./include/header.php");
+include("./include/header.php");
+
+if (isset($_GET['post'])) {
+    $post_id = $_GET['post'];
+
+    $post = $db->prepare("SELECT * FROM posts WHERE id = :id");
+    $post->execute(['id' => $post_id]);
+    $post = $post->fetch();
+}
+
+if (isset($_POST['post_comment'])) {
+    if (trim($_POST['name']) != "" &&  trim($_POST['comment']) != "") {
+        $name = $_POST['name'];
+        $comment = $_POST['comment'];
+
+        $comment_insert = $db->prepare("INSERT INTO comments (name , comment , post_id) VALUES (:name , :comment , :post_id)");
+        $comment_insert->execute(['name' => $name, 'comment' => $comment, 'post_id' => $post_id]);
+
+        header("Location:single.php?post=$post_id");  //refresh
+        exit();
+    } else {
+        echo "فیلدها نباید خالی باشند.";
+    }
+}
+
+
+
+
 ?>
 
-    <section class="py-3">
+<section class="py-3">
 
-        <div class="container-fluid">
-            <div class="row">
+    <div class="container-fluid">
+        <div class="row">
 
-                <div class="col-md-8 mb-4">
-                    <div class="container">
+            <div class="col-md-8 mb-4">
+                <div class="container">
+                    <?php
+                    if ($post) {
+                        $category_id = $post['category_id'];
+                        $post_category = $db->prepare("SELECT * FROM categories WHERE id = :id");
+                        $post_category->execute(['id' => $category_id]);
+                        $post_category = $post_category->fetch();
+                        //var_dump($post_category);
+
+                        $post_id = $post['id'];
+                        $comments = $db->prepare("SELECT * FROM comments WHERE post_id = :id AND status='1' ");
+                        $comments->execute(['id' => $post_id]);
+
+                    ?>
+
                         <div class="row">
 
                             <div>
-                                <img src="./img/1.jpg" class="img-fluid" alt="">
+                                <img src="./upload//posts/<?php echo $post['image']; ?>" class="img-fluid" alt="">
                             </div>
 
                             <div class="p-3">
 
                                 <div class="d-flex align-items-center">
-                                    <h2>لورم ایپسوم 1</h2>
+                                    <h2><?php echo $post['title']; ?></h2>
                                     <div class="mr-2">
-                                        <span class="badge badge-secondary">دسته 2</span>
+                                        <span class="badge badge-secondary"><?php echo $post_category['title']; ?></span>
                                     </div>
                                 </div>
                                 <p class="text-justify">
-                                    لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.
+                                    <?php echo $post['body']; ?>
                                 </p>
 
-                                <p> نویسنده : محمد مهرابی </p>
+                                <p> نویسنده : <?php echo $post['author']; ?> </p>
                             </div>
 
                         </div>
-                        <hr>
 
+
+                        <hr>
                         <!-- Commentes -->
                         <div class="row">
                             <div class="col-12">
@@ -54,87 +96,78 @@
 
                             </div>
                         </div>
+
                         <hr>
                         <div class="row p-md-3">
 
-                            <p>تعداد کامنت : 3</p>
+                            <p>تعداد کامنت : <?php echo $comments->rowCount(); ?></p>
+                            <?php
+                            if ($comments->rowCount() > 0) {
+                                foreach ($comments as $comment) {
 
-                            <div class="col-12 mb-3">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <img src="./img/boy.svg" width="70" height="70" class="rounded-circle" alt="Cinque Terre">
+                            ?>
+                                    <div class="col-12 mb-3">
+                                        <div class="card bg-light">
 
-                                            <div class="mr-3">
-                                                <h5 class="card-title"> علی </h5>
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="./upload/posts/boy.svg" width="70" height="70" class="rounded-circle" alt="Cinque Terre">
+
+                                                    <div class="mr-3">
+                                                        <h5 class="card-title"> <?php echo $comment['name'] ?> </h5>
+                                                    </div>
+                                                </div>
+
+                                                <p class="card-text pt-3 pr-3">
+                                                    <?php echo $comment['comment']; ?>
+                                                </p>
+
                                             </div>
                                         </div>
-
-                                        <p class="card-text pt-3 pr-3">
-                                            لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.
-                                        </p>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="col-12 mb-3">
-                                <div class="card bg-light">
-
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <img src="./img/boy.svg" width="70" height="70" class="rounded-circle" alt="Cinque Terre">
-
-                                            <div class="mr-3">
-                                                <h5 class="card-title"> محمد </h5>
-                                            </div>
-                                        </div>
-
-                                        <p class="card-text pt-3 pr-3">
-                                            لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.
-                                        </p>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <div class="card bg-light">
-
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <img src="./img/boy.svg" width="70" height="70" class="rounded-circle" alt="Cinque Terre">
-
-                                            <div class="mr-3">
-                                                <h5 class="card-title"> صادق </h5>
-                                            </div>
-                                        </div>
-
-                                        <p class="card-text pt-3 pr-3">
-                                            لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.
-                                        </p>
-
-                                    </div>
-                                </div>
-                            </div>
+                            <?php
+                                }
+                            }
+                            ?>
 
                         </div>
-                    </div>
+
+
+                    <?php
+
+                    } else {
+                    ?>
+
+                        <div class="col">
+                            <div class="alert alert-danger">
+                                مقاله مورد نظر یافت نشد!
+                            </div>
+                        </div>
+
+                    <?php
+                    }
+                    ?>
+
+
 
                 </div>
 
-                <!-- Sidebar -->
-                <?php
-
-                    include("./include/sidebar.php");
-                ?>
-
-
             </div>
+
+            <!-- Sidebar -->
+            <?php
+
+            include("./include/sidebar.php");
+            ?>
+
+
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Footer -->
-    <?php
+<!-- Footer -->
+<?php
 
-        include("./include/footer.php");
-    ?>
+include("./include/footer.php");
+?>

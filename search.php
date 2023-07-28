@@ -7,6 +7,7 @@
 
     $posts = $db->prepare("SELECT * FROM posts WHERE title LIKE :keyword");
     $posts->execute(['keyword' => "%$keyword%"]);
+
   }
 ?>
 
@@ -61,9 +62,9 @@
                         ?>
 
                             <div class="col">
-                            <div class="alert alert-danger">
-                                مقاله مورد نظر یافت نشد!
-                            </div>
+                                <div class="alert alert-danger">
+                                    مقاله مورد نظر یافت نشد!
+                                </div>
                             </div>
                         
                         <?php

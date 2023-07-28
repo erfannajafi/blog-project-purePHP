@@ -3,6 +3,8 @@
   include("./include/slider.php");
 
   if (isset($_GET['category'])) {
+    $posts = $db->prepare("SELECT * FROM posts WHERE category_id=:id");
+    $posts->execute(['id' => $_GET['category']]);
 
   } else {
     $query_posts = "SELECT * FROM posts";
@@ -19,6 +21,7 @@
         <div class="col-md-8 mb-4">
           <div class="row">
             <?php 
+            
             if ($posts->rowCount() > 0) {
               foreach ($posts as $post) {
                 $category_id = $post['category_id'];
