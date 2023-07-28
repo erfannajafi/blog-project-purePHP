@@ -1,6 +1,13 @@
 <?php
   include("./include/header.php");
   include("./include/slider.php");
+
+  if (isset($_GET['category'])) {
+
+  } else {
+    $query_posts = "SELECT * FROM posts";
+    $posts = $db->query($query_posts);
+  }
 ?>
 
   <!-- Blogs -->
@@ -11,81 +18,52 @@
         <!-- blog -->
         <div class="col-md-8 mb-4">
           <div class="row">
+            <?php 
+            if ($posts->rowCount() > 0) {
+              foreach ($posts as $post) {
+                $category_id = $post['category_id'];
+                $query_post_category = "SELECT * FROM categories WHERE id=$category_id";
+                $post_category = $db->query($query_post_category)->fetch(); 
+
+            ?>
+
             <div class="col-sm-6 mt-2">
               <div class="card">
-                <img src="./img/1.jpg" class="card-img-top" alt="...">
+                <img src="./upload/posts/<?php echo $post['image'] ?>" class="card-img-top" alt="...">
                 <div class="card-body">
                   <div class="d-flex justify-content-between">
-                    <h5 class="card-title">لورم ایپسوم 1</h5>
-                    <div><span class="badge badge-secondary"> دسته 2 </span></div>
+                    <h5 class="card-title"><?php echo $post['title']; ?></h5>
+                    <div><span class="badge badge-secondary"> <?php echo $post_category['title']; ?> </span></div>
                   </div>
                   <p class="card-text text-justify">
-                    لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و...
+                    <?php echo substr($post['body'] , 0 , 500) . "..."; ?>
                   </p>
                   <div class="d-flex justify-content-between">
-                    <a href="single.php" class="btn btn-outline-primary stretched-link">مشاهده</a>
-                    <p> نویسنده : محمد مهرابی </p>
+                    <a href="single.php?post=<?php echo $post['id']; ?>" class="btn btn-outline-primary stretched-link">مشاهده</a>
+                    <p>نویسنده : <?php echo $post['author']; ?> </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="col-sm-6 mt-2">
-              <div class="card">
-                <img src="./img/2.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between">
-                    <h5 class="card-title">لورم ایپسوم 2</h5>
-                    <div><span class="badge badge-secondary"> دسته 3 </span></div>
-                  </div>
-                  <p class="card-text text-justify">
-                    لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و...
-                  </p>
-                  <div class="d-flex justify-content-between">
-                    <a href="single.php" class="btn btn-outline-primary stretched-link">مشاهده</a>
-                    <p> نویسنده : علی شیخ </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <?php 
+              
+              }
+            }
 
-            <div class="col-sm-6 mt-2">
-              <div class="card">
-                <img src="./img/3.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between">
-                    <h5 class="card-title">لورم ایپسوم 3</h5>
-                    <div><span class="badge badge-secondary"> دسته 1 </span></div>
-                  </div>
-                  <p class="card-text text-justify">
-                    لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و...
-                  </p>
-                  <div class="d-flex justify-content-between">
-                    <a href="single.php" class="btn btn-outline-primary stretched-link">مشاهده</a>
-                    <p> نویسنده : علی شیخ </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            else {
+              ?>
 
-            <div class="col-sm-6 mt-2">
-              <div class="card">
-                <img src="./img/4.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between">
-                    <h5 class="card-title">لورم ایپسوم 4</h5>
-                    <div><span class="badge badge-secondary"> دسته 2 </span></div>
-                  </div>
-                  <p class="card-text text-justify">
-                    لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و...
-                  </p>
-                  <div class="d-flex justify-content-between">
-                    <a href="single.php" class="btn btn-outline-primary stretched-link">مشاهده</a>
-                    <p> نویسنده : علی شیخ </p>
-                  </div>
+              <div class="col">
+                <div class="alert alert-danger">
+                  مقاله مورد نظر یافت نشد!
                 </div>
               </div>
-            </div>
+            
+            <?php
+            }
+            ?>
+
           </div>
         </div>
 
