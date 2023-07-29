@@ -1,65 +1,38 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<?php
+include("./include/header.php");
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+if (isset($_GET['id'])) {
+    $category_id = $_GET['id'];
 
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous" />
-    <link rel="stylesheet" href="./css/admin.css" />
-    <title>Blog WebProg</title>
-</head>
+    $category = $db->prepare('SELECT * FROM categories WHERE id = :id');
+    $category->execute(['id' => $category_id]);
+    $category = $category->fetch();
+}
+if (isset($_POST['edit_category'])) {
 
-<body>
-    <!-- Header -->
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="index.php">WebProg.ir</a>
+    if (trim($_POST['title']) != "") {
 
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-                <a class="nav-link" href="logout.php">خروج</a>
-            </li>
-        </ul>
-    </nav>
+        $title = $_POST['title'];
+
+        $category_update = $db->prepare("UPDATE categories SET title =:title WHERE id=:id");
+        $category_update->execute(['title' => $title, 'id' => $category_id]);
+
+        header("Location:category.php");
+        exit();
+
+    } else {
+        header("Location:edit_category.php?id=$category_id&err_msg= فیلد عنوان الزامی هست");
+        exit();
+    }
+    
+}
+
+?>
 
 <div class="container-fluid">
     <div class="row">
 
-        <!-- Sidebar -->
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="index.php">
-                                <i class="fas fa-home"></i>
-                                داشبورد
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="post.php">
-                                <i class="fas fa-file-image"></i>
-                                مقالات
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="category.php">
-                                <i class="fas fa-folder-open"></i>
-                                دسته بندی
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="comment.php">
-                                <i class="fas fa-comments"></i>
-                                کامنت
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </div>
-            </nav>
+        <?php include('./include/sidebar.php') ?>
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
@@ -67,11 +40,19 @@
                 <h3>ویرایش دسته</h3>
             </div>
             <hr>
-            
+            <?php
+            if (isset($_GET['err_msg'])) {
+                ?>
+                <div class="alert alert-danger" role="alert">
+                    <?php echo $_GET['err_msg'] ?>
+                </div>
+            <?php
+            }
+            ?>
             <form method="post">
                 <div class="form-group">
                     <label for="category">عنوان : </label>
-                    <input type="text" class="form-control" value="دسته 1" name="title" id="category">
+                    <input type="text" class="form-control" value="<?php echo $category['title'] ?>" name="title" id="category">
                     <small class="form-text text-muted">نام دسته را وارد کنید.</small>
                 </div>
 
