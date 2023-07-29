@@ -1,65 +1,48 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<?php 
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+include("./include/header.php");
 
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous" />
-    <link rel="stylesheet" href="./css/admin.css" />
-    <title>Blog WebProg</title>
-</head>
+$query_categories = "SELECT * FROM categories";
+$categories = $db->query($query_categories);
 
-<body>
-    <!-- Header -->
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="index.php">WebProg.ir</a>
 
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-                <a class="nav-link" href="logout.php">خروج</a>
-            </li>
-        </ul>
-    </nav>
+if (isset($_POST['add_post']) ) {
+    if ( trim($_POST['title']) != "" &&  trim($_POST['author']) != "" &&  trim($_POST['category_id']) != "" &&  trim($_FILES['image']['name']) != ""  ) {
+        $title = $_POST['title'];
+        $author = $_POST['author'];
+        $category_id = $_POST['category_id'];
+        $body = $_POST['body'];
+
+        $name_image = $_FILES['image']['name'];
+        $tmp_name = $_FILES['image']['tmp_name'];
+        if (move_uploaded_file($tmp_name, "../upload/posts/$name_image")) {
+            echo "Upload success";
+        } else {
+            echo "Upload error";
+        }
+
+        $post_insert = $db->prepare("INSERT INTO posts (title , author , category_id , body , image) VALUES (:title , :author , :category_id , :body , :image)");
+        $post_insert->execute(['title' => $title , 'author' => $author , 'category_id' => $category_id , 'body' => $body , 'image' => $name_image]);
+
+        header("Location:post.php");
+        exit();
+    } else {
+        header("Location:new_post.php?err_msg= تمام فیلدها الزامی است.");
+        exit();
+    }
+}
+
+?>
 
     <div class="container-fluid">
         <div class="row">
 
-            <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="index.php">
-                                <i class="fas fa-home"></i>
-                                داشبورد
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="post.php">
-                                <i class="fas fa-file-image"></i>
-                                مقالات
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="category.php">
-                                <i class="fas fa-folder-open"></i>
-                                دسته بندی
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="comment.php">
-                                <i class="fas fa-comments"></i>
-                                کامنت
-                            </a>
-                        </li>
 
-                    </ul>
+        <?php
+        include("./include/sidebar.php");
+        ?>
 
-                </div>
-            </nav>
+
 
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
@@ -68,6 +51,15 @@
                 </div>
 
                 <hr>
+                <?php 
+                if(isset($_GET['err_msg'])) {
+                    ?>
+                    <div class="alert alert-danger" , role="alert">
+                        <?php echo $_GET['err_msg']; ?>
+                    </div>
+                <?php
+                }
+                ?>
 
                 <form method="post" class="mb-5" enctype="multipart/form-data">
                     <div class="form-group">
@@ -83,9 +75,15 @@
                     <div class="form-group">
                         <label for="category_id">دسته بندی : </label>
                         <select class="form-control" name="category_id" id="category_id">
-                            <option value="1"> دسته 1 </option>
-                            <option value="2"> دسته 2 </option>
-                            <option value="3"> دسته 3 </option>
+                            <?php 
+                            if ($categories->rowCount() > 0) {
+                                foreach($categories as $category) {
+                                    ?>
+                                    <option value="<?php echo $category['id']; ?>"><?php echo $category['title']; ?></option>
+                                    <?php
+                                }
+                            }
+                            ?>                       
                         </select>
                     </div>
                     <div class="form-group">

@@ -1,65 +1,63 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<?php
+include("./include/header.php");
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+if (isset($_GET['id']) ) 
+{
+    $post_id = $_GET['id'];
+    $post = $db->prepare("SELECT * FROM posts WHERE id=:id");
+    $post->execute(['id' => $post_id]);
+    $post = $post->fetch();
 
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous" />
-    <link rel="stylesheet" href="./css/admin.css" />
-    <title>Blog WebProg</title>
-</head>
+    $categories = $db->query("SELECT * FROM categories");
 
-<body>
-    <!-- Header -->
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="index.php">WebProg.ir</a>
+    if (isset($_POST['edit_post'])) {
+        if ( trim($_POST['title']) != "" &&  trim($_POST['author']) != "" &&  trim($_POST['category_id']) != "" ) {
+            $title = $_POST['title'];
+            $author = $_POST['author'];
+            $category_id = $_POST['category_id'];
+            $body = $_POST['body'];
 
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-                <a class="nav-link" href="logout.php">خروج</a>
-            </li>
-        </ul>
-    </nav>
+            if (trim($_FILES['image']['name']) != "" ) {
+                $name_image = $_FILES['image']['name'];
+                $tmp_name = $_FILES['image']['tmp_name'];
+
+                if (move_uploaded_file($tmp_name, "../upload/posts/$name_image")) {
+                    echo "Upload success";
+                } else {
+                    echo "Upload error";
+                }
+
+                $post_update = $db->prepare("UPDATE posts SET title=:title , author=:author , category_id=:category_id , body=:body , image=:image WHERE id=:id");
+                $post_update->execute(['title' => $title , 'author' => $author , 'category_id' => $category_id , 'body' => $body , 'image' => $name_image , 'id' => $post_id]);
+
+
+            }  else {
+                $post_update = $db->prepare("UPDATE posts SET title=:title , author=:author , category_id=:category_id , body=:body WHERE id=:id");
+                $post_update->execute(['title' => $title , 'author' => $author , 'category_id' => $category_id , 'body' => $body , 'id' => $post_id]);
+            }
+            header("Location:post.php"); //refresh
+            exit();
+        } 
+         else {
+            header("Location:edit_post.php?id=$post_id&err_msg= تمام فیلدها الزامی است."); //refresh
+            exit();
+        }
+
+    }
+}
+
+
+?>
+
 
     <div class="container-fluid">
         <div class="row">
 
             <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="index.php">
-                                <i class="fas fa-home"></i>
-                                داشبورد
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="post.php">
-                                <i class="fas fa-file-image"></i>
-                                مقالات
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="category.php">
-                                <i class="fas fa-folder-open"></i>
-                                دسته بندی
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="comment.php">
-                                <i class="fas fa-comments"></i>
-                                کامنت
-                            </a>
-                        </li>
+            <?php
+            include("./include/sidebar.php");
+            ?>
 
-                    </ul>
-
-                </div>
-            </nav>
 
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
@@ -72,31 +70,37 @@
                 <form method="post" class="mb-5" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="title">عنوان : </label>
-                        <input type="text" class="form-control" value="لورم ایپسوم 1" name="title" id="title">
+                        <input type="text" class="form-control" value="<?php echo $post['title']; ?>" name="title" id="title">
                         <small class="form-text text-muted">نام مقاله را وارد کنید.</small>
                     </div>
                     <div class="form-group">
                         <label for="author">نویسنده : </label>
-                        <input type="text" class="form-control" value="صادق محمدی" name="author" id="author">
+                        <input type="text" class="form-control" value="<?php echo $post['author']; ?>" name="author" id="author">
                         <small class="form-text text-muted">نام نویسنده را وارد کنید.</small>
                     </div>
                     <div class="form-group">
                         <label for="category_id">دسته بندی : </label>
                         <select class="form-control" name="category_id" id="category_id">
-                            <option value="1"> دسته 1 </option>
-                            <option selected value="2"> دسته 2 </option>
-                            <option value="3"> دسته 3 </option>
+                            <?php
+                            if ($categories->rowCount() > 0) {
+                                foreach($categories as $category) {
+                                    ?>
+                                    <option value="<?php echo $category['id']; ?>" <?php echo ($category['id'] == $post['category_id']) ? "selected" : "" ?> > <?php echo $category['title']; ?> </option>
+                                    <?php
+                                }
+                            }
+                            ?>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="category">متن مقاله : </label>
                         <textarea class="form-control" name="body" id="body" rows="3">
-                        لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.
-                    </textarea>
+                            <?php echo $post['body']; ?>
+                        </textarea>
                         <small class="form-text text-muted">متن مقاله را وارد کنید.</small>
                     </div>
 
-                    <img class="img-fluid" src="./img/1.jpg" alt="">
+                    <img class="img-fluid" src="../upload/posts/<?php echo $post['image']; ?>" alt="">
                     <div class="form-group">
                         <label for="author">تصویر : </label>
                         <input type="file" class="form-control" name="image" id="image">
