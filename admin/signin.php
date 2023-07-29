@@ -1,3 +1,35 @@
+<?php
+session_start();
+include("./include/config.php");
+include("./include/db.php");
+
+
+if (isset($_POST['login'])) {
+    if (trim($_POST['email']) != "" && trim($_POST['password']) != "") {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+
+        $user_select = $db->prepare("SELECT * FROM users WHERE email=:email AND password=:password");
+        $user_select->execute(['email' => $email , 'password' => $password]);
+
+        if ($user_select->rowCount() == 1) {
+            $_SESSION['email'] = $email;
+            header("Location:index.php");
+            exit();
+        }  else {
+            header("Location:signin.php?err_msg= ایمیل یا رمز به درستی وارد نشده است.");
+            exit();
+        }
+
+
+    } else {
+        header("Location:signin.php?err_msg= فیلدهای ایمیل و رمز ضروری است.");
+        exit();
+    }
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
@@ -16,6 +48,15 @@
 
         <div class="row d-flex justify-content-center align-items-center" style="height: 100vh">
             <div class="card bg-dark">
+                <?php
+                if (isset($_GET['err_msg'])) {
+                    ?>
+                    <div class="alert alert-danger" , role="alert">
+                        <?php echo $_GET['err_msg']; ?>
+                    </div>
+                <?php
+                }
+                ?>
                 <h3 class="text-white text-center pt-3">ورود</h2>
                     <div class="card-body" style="width: 400px">
                         <form method="post">

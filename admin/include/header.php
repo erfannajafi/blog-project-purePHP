@@ -1,6 +1,12 @@
 <?php
+session_start();
 include("./include/config.php");
 include("./include/db.php");
+
+if (! isset($_SESSION['email'])) {
+    header("Location:signin.php?err_msg= در ابتدا باید وارد حساب خود شوید.");
+    exit();
+}
 
 ?>
 
